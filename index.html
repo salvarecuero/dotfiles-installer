@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salva's Dotfiles</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .subtitle {
+            color: #7d8590;
+            margin-bottom: 2.5rem;
+        }
+        .code-block {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .code-block:hover { border-color: #58a6ff; }
+        code {
+            font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+            font-size: 0.9rem;
+            color: #e6edf3;
+            flex: 1;
+            text-align: left;
+            word-break: break-all;
+        }
+        .copy-btn {
+            background: none;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #7d8590;
+            padding: 0.4rem 0.6rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        .copy-btn:hover { color: #e6edf3; border-color: #58a6ff; }
+        .copy-btn.copied { color: #3fb950; border-color: #3fb950; }
+        .hint {
+            color: #7d8590;
+            font-size: 0.8rem;
+            margin-top: 0.75rem;
+        }
+        .footer {
+            margin-top: 3rem;
+            color: #484f58;
+            font-size: 0.8rem;
+        }
+        .footer a { color: #58a6ff; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Salva's Dotfiles</h1>
+        <p class="subtitle">One command to set up a new machine.</p>
+        <div class="code-block" onclick="copyCommand()">
+            <code>bash &lt;(curl -fsSL dotfiles.salvarecuero.dev/install.sh)</code>
+            <button class="copy-btn" id="copyBtn">Copy</button>
+        </div>
+        <p class="hint">Click to copy</p>
+        <div class="footer">
+            <a href="https://github.com/salvarecuero/dotfiles">github.com/salvarecuero/dotfiles</a>
+        </div>
+    </div>
+    <script>
+        function copyCommand() {
+            const cmd = 'bash <(curl -fsSL dotfiles.salvarecuero.dev/install.sh)';
+            navigator.clipboard.writeText(cmd).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = 'Copied!';
+                btn.classList.add('copied');
+                setTimeout(() => {
+                    btn.textContent = 'Copy';
+                    btn.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
