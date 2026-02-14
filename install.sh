@@ -53,7 +53,8 @@ banner "Salva's Dotfiles" "dotfiles.salvarecuero.dev"
 
 # Prompt for token (read from /dev/tty so curl|bash works)
 printf "${_C_DIM}    Create one at: https://github.com/settings/tokens${_C_RESET}\n"
-printf "${_C_DIM}    Needs the 'repo' scope for private repos${_C_RESET}\n\n"
+printf "${_C_DIM}    Classic token: needs 'repo' scope${_C_RESET}\n"
+printf "${_C_DIM}    Fine-grained:  needs 'Contents: Read' for the dotfiles repo${_C_RESET}\n\n"
 printf "${_C_BOLD}${_C_GREEN}  ? ${_C_RESET}${_C_BOLD}GitHub access token${_C_RESET}: "
 if ! read -rs GITHUB_TOKEN < /dev/tty 2>/dev/null; then
     echo ""
@@ -93,15 +94,36 @@ else
     log_ok "yadm already installed"
 fi
 
-# Clone dotfiles
-log_info "Cloning dotfiles..."
-CLONE_URL="https://${GITHUB_TOKEN}@github.com/${REPO}.git"
+# Clone or pull dotfiles via GIT_ASKPASS (avoids token in process list or remote URL)
+_askpass="$(mktemp)"
+trap 'rm -f "$_askpass"' EXIT
+cat > "$_askpass" << 'ASKPASS'
+#!/bin/sh
+case "$1" in
+    Username*) echo "x-access-token" ;;
+    *) echo "$GITHUB_TOKEN" ;;
+esac
+ASKPASS
+chmod +x "$_askpass"
+export GITHUB_TOKEN
 
-if ! GITHUB_TOKEN="$GITHUB_TOKEN" yadm clone "$CLONE_URL" 2>&1; then
-    log_error "Clone failed — check your token and try again"
-    exit 1
+if [ -d "$HOME/.local/share/yadm/repo.git" ]; then
+    log_ok "Dotfiles already cloned"
+    log_info "Pulling latest changes..."
+    if ! GIT_ASKPASS="$_askpass" yadm pull 2>&1; then
+        log_error "Pull failed — check your token and try again"
+        exit 1
+    fi
+    log_ok "Dotfiles updated"
+else
+    log_info "Cloning dotfiles..."
+    if ! GIT_ASKPASS="$_askpass" yadm clone "https://github.com/${REPO}.git" 2>&1; then
+        log_error "Clone failed — check your token and try again"
+        exit 1
+    fi
+    log_ok "Dotfiles cloned"
 fi
-log_ok "Dotfiles cloned"
+rm -f "$_askpass"
 
 # Run bootstrap
 log_info "Running bootstrap..."
