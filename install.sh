@@ -79,14 +79,13 @@ done
 
 # Install yadm if not present
 if ! command -v yadm &>/dev/null; then
-    log_info "Installing yadm..."
-    if sudo -n true 2>/dev/null; then
-        sudo curl -fLo /usr/local/bin/yadm \
-            https://github.com/yadm-dev/yadm/raw/master/yadm
-        sudo chmod a+x /usr/local/bin/yadm
+    log_info "Installing yadm (sudo may prompt for password)..."
+    if sudo curl -fLo /usr/local/bin/yadm \
+            https://github.com/yadm-dev/yadm/raw/master/yadm \
+        && sudo chmod a+x /usr/local/bin/yadm; then
         log_ok "yadm installed"
     else
-        log_error "yadm is not installed and sudo requires a password"
+        log_error "yadm install failed"
         log_info "Install manually: sudo curl -fLo /usr/local/bin/yadm https://github.com/yadm-dev/yadm/raw/master/yadm && sudo chmod a+x /usr/local/bin/yadm"
         exit 1
     fi
@@ -117,7 +116,7 @@ if [ -d "$HOME/.local/share/yadm/repo.git" ]; then
     log_ok "Dotfiles updated"
 else
     log_info "Cloning dotfiles..."
-    if ! GIT_ASKPASS="$_askpass" yadm clone "https://github.com/${REPO}.git" 2>&1; then
+    if ! GIT_ASKPASS="$_askpass" yadm clone --no-bootstrap "https://github.com/${REPO}.git" 2>&1; then
         log_error "Clone failed — check your token and try again"
         exit 1
     fi
