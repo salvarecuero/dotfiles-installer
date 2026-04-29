@@ -166,3 +166,11 @@ if ! GITHUB_TOKEN="$GITHUB_TOKEN" yadm bootstrap; then
     log_error "Bootstrap failed — see output above"
     exit 1
 fi
+
+# Drop into zsh so the user doesn't have to `exec zsh` themselves.
+# Gated on oh-my-zsh.sh existing — that means local-mode bootstrap completed
+# here (not the container path, which doesn't touch the host's shell setup).
+if command -v zsh &>/dev/null && [ -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
+    log_info "Reloading into zsh..."
+    exec zsh -l
+fi
