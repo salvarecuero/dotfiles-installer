@@ -1,6 +1,6 @@
 #!/bin/bash
 # Dotfiles installer — curl-safe, self-contained, styled.
-# Usage: bash <(curl -fsSL dotfiles.salvarecuero.dev/install.sh)
+# Usage: curl -fsSL https://dotfiles.salvarecuero.dev/install.sh | bash
 
 set -euo pipefail
 
@@ -60,20 +60,20 @@ for cmd in curl git; do
     fi
 done
 
-# Auth detection: try SSH agent first (e.g. when reached via `ssh -A`),
-# fall back to a personal access token.
+# Auth detection: try the user's normal SSH configuration first (whether or
+# not an agent is running), then fall back to a personal access token.
 USE_SSH=false
 GITHUB_TOKEN=""
 
-if [ -n "${SSH_AUTH_SOCK:-}" ] && command -v ssh &>/dev/null; then
-    log_info "SSH agent detected — testing GitHub access..."
+if command -v ssh &>/dev/null; then
+    log_info "Testing GitHub SSH access..."
     _ssh_test=$(ssh -T -o BatchMode=yes -o ConnectTimeout=5 \
         -o StrictHostKeyChecking=accept-new git@github.com 2>&1 || true)
     if printf '%s' "$_ssh_test" | grep -q "successfully authenticated"; then
         USE_SSH=true
         log_ok "SSH access works — skipping token prompt"
     else
-        log_warn "SSH agent can't auth to GitHub — falling back to token"
+        log_warn "SSH can't auth to GitHub — falling back to token"
     fi
 fi
 
@@ -85,7 +85,7 @@ if [ "$USE_SSH" = false ]; then
     printf "${_C_BOLD}${_C_GREEN}  ? ${_C_RESET}${_C_BOLD}GitHub access token${_C_RESET}: "
     if ! read -rs GITHUB_TOKEN < /dev/tty 2>/dev/null; then
         echo ""
-        log_error "Cannot read from terminal — run with: bash <(curl -fsSL URL)"
+        log_error "Cannot read from terminal — run with: curl -fsSL URL | bash"
         exit 1
     fi
     if [ -n "$GITHUB_TOKEN" ]; then
